@@ -9,7 +9,7 @@ DOMAIN = "https://xn--iour70h.com"
 CSS_VER = "20261126a"
 AD = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1061443138303693" crossorigin="anonymous"></script>'
 NAV = [("駐屯地祭", "/miru/kinengyoji/"), ("見られる場所", "/miru/"), ("陸自の戦車", "/rikuji/"), ("旧日本軍", "/kyugun/"), ("世界の戦車", "/sekai/"), ("戦車戦", "/senshasen/")]
-SECTION_NAME = {"miru": ("見られる場所", "/miru/"), "rikuji": ("陸自の戦車", "/rikuji/"), "kyugun": ("旧日本軍の戦車", "/kyugun/"), "sekai": ("世界の戦車", "/sekai/"), "senshasen": ("戦車戦", "/senshasen/")}
+SECTION_NAME = {"miru": ("見られる場所", "/miru/"), "rikuji": ("陸自の戦車", "/rikuji/"), "kyugun": ("旧日本軍の戦車", "/kyugun/"), "sekai": ("世界の戦車", "/sekai/"), "senshasen": ("戦車戦", "/senshasen/"), "chutonchi": ("駐屯地ガイド", "/chutonchi/")}
 
 def esc(s): return html.escape(s, quote=True)
 def strip(s): return re.sub(r"<[^>]+>", "", s).strip()
@@ -326,6 +326,17 @@ def photo_wall():
     return (f'<section class="block"><h2>写真で見る戦車</h2><div class="gallery wall">{"".join(items)}</div>'
             f'<p class="note">写真はWikimedia Commonsの自由ライセンス画像です。写真を押すとその戦車のページへ、ライセンス表記を押すと元の写真のページへ移動します。</p></section>\n')
 
+GARRISON = {"健軍駐屯地":"kengun","霞目駐屯地":"kasuminome","久居駐屯地":"hisai","神町駐屯地":"jinmachi","福岡駐屯地":"fukuoka","善通寺駐屯地":"zentsuji",
+ "金沢駐屯地":"kanazawa","守山駐屯地":"moriyama","東千歳駐屯地":"higashichitose","美唄駐屯地":"bibai","島松駐屯地":"shimamatsu","真駒内駐屯地":"makomanai",
+ "滝川駐屯地":"takikawa","丘珠駐屯地":"okadama","倶知安駐屯地":"kutchan","北恵庭駐屯地":"kitaeniwa","静内駐屯地":"shizunai","幌別駐屯地":"horobetsu",
+ "南恵庭駐屯地":"minamieniwa","岩見沢駐屯地":"iwamizawa","白老駐屯地":"shiraoi","福島駐屯地":"fukushima","苗穂分屯地":"naebo","函館駐屯地":"hakodate",
+ "富山駐屯地":"toyama","豊川駐屯地":"toyokawa","鯖江駐屯地":"sabae","安平駐屯地":"abira","姫路駐屯地":"himeji"}
+def link_garrisons(body):
+    for n, sl in GARRISON.items():
+        if complete(f"chutonchi__{sl}.html"):
+            body = body.replace(f"<td>{n}</td>", f'<td><a href="/chutonchi/{sl}/">{n}</a></td>')
+    return body
+
 def archive_rows(body):
     def tag(t):
         hd = re.search(r"<th>(開催日[^<]*)</th>", t)
@@ -382,7 +393,7 @@ def unlink_missing(body):
     def rep(m):
         d, sl = m.group(1), m.group(2)
         return m.group(0) if complete(f"{d}__{sl}.html") else m.group(3)
-    return re.sub(r'<a href="/(miru|rikuji|kyugun|sekai|senshasen)/([a-z0-9]+)/"[^>]*>(.*?)</a>', rep, body)
+    return re.sub(r'<a href="/(miru|rikuji|kyugun|sekai|senshasen|chutonchi)/([a-z0-9]+)/"[^>]*>(.*?)</a>', rep, body)
 
 def render(url, title, desc, body):
     body = unlink_missing(link_ships(url, body))
@@ -413,7 +424,7 @@ def render(url, title, desc, body):
     if url == "/":
         hero = top_hero(body) + next_events() + photo_wall()
     if url == "/miru/kinengyoji/":
-        body = archive_rows(body)
+        body = link_garrisons(archive_rows(body))
     body = ul_to_cards(body)
     main = (f'  <div class="crumb">{crumb}</div>\n' if url != "/" else "") + hero + insert_after_first_section(blockify(wrap_tables(body)), figure_for(url))
     if gal:
