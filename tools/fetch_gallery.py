@@ -87,7 +87,7 @@ def angle(text):
         if any(k in text for k in keys): return label
     return ""
 
-def pick(cands, n=6):
+def pick(cands, n=14):
     chosen, used = [], set()
     for label, _ in ANGLES:
         for c in cands:
@@ -126,7 +126,7 @@ def main():
         allf = files_in(cat) if cat else []
         if len(allf) < 3 and slug in SEARCH: allf += search_files(SEARCH[slug])
         files = [f for f in dict.fromkeys(allf) if re.search(r"\.(jpe?g|png)$", f, re.I) and not any(a in f.lower() for a in AVOID)]
-        got = pick([c for c in infos(files[:160]) if not any(a in c["text"] for a in AVOID)])
+        got = pick([c for c in infos(files[:200]) if not any(a in c["text"] for a in AVOID)])
         for label, c in got:
             out.append("\t".join([slug, label, c["thumb"], c["page"], c["author"], c["license"], c["license_url"]]))
         print(f"{slug} {cat} files={len(files)} picked={len(got)} angles={','.join(l for l, _ in got if l)}")

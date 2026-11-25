@@ -205,12 +205,21 @@ def gallery_for(url, hero_src):
                 r = l.split("\t")
                 if len(r) >= 7 and r[5]: GALLERY.setdefault(r[0], []).append(r)
     items = [r for r in GALLERY.get(url, []) if r[2] != hero_src]
+    if len(items) < 10:
+        # 一覧ページなどは、配下のページの写真も合わせて10枚以上にする
+        sec = "/" + url.strip("/").split("/")[0] + "/" if url != "/" else "/"
+        seen = {r[2] for r in items} | {hero_src}
+        for k, v in sorted(GALLERY.items()):
+            if k != url and (k.startswith(url) or k.startswith(sec)):
+                for r in v[:3]:
+                    if r[2] not in seen: items.append(r); seen.add(r[2])
+            if len(items) >= 12: break
     if len(items) < 2: return ""
     figs = "".join(
         f'<figure><a href="{esc(r[3])}" target="_blank" rel="noopener"><img src="{esc(r[2])}" alt="{esc((r[1] + "見た" if r[1] else "") + "艦の写真")}" loading="lazy" decoding="async"></a>'
         f'<figcaption>{"<b>" + esc(r[1]) + "</b> " if r[1] else ""}{esc(r[4][:60])} / '
         f'{"<a href=" + chr(34) + esc(r[6]) + chr(34) + " target=_blank rel=" + chr(34) + "noopener license" + chr(34) + ">" + esc(r[5]) + "</a>" if r[6] else esc(r[5])}</figcaption></figure>'
-        for r in items[:6])
+        for r in items[:12])
     return (f'<section class="block"><h2>写真ギャラリー</h2><div class="gallery">{figs}</div>'
             f'<p class="note">写真はWikimedia Commonsの自由ライセンス画像です。クリックすると撮影者・ライセンスの詳細ページが開きます。角度の表記は画像の説明文から判定したもので、表記のない写真もあります。</p></section>\n')
 
