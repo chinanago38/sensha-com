@@ -195,6 +195,27 @@ def figure_for(url):
     return ""
 
 GALLERY = None
+GAL_ASSIGNED = None
+def assign_galleries():
+    # サイト全体で同じ写真が2回出ないよう、個別ページ→一覧ページの順に写真を割り当てる
+    global GAL_ASSIGNED
+    GAL_ASSIGNED = {}
+    used = set()
+    if PHOTOS:
+        used |= {r[1] for r in PHOTOS.values()}
+    pages = [url_of(f) for f in glob.glob(os.path.join(ROOT, "tools", "content", "*.html"))]
+    pages.sort(key=lambda u: (u.count("/") < 3, u))
+    for u in pages:
+        own = [r for r in GALLERY.get(u, []) if r[2] not in used]
+        if len(own) < 10:
+            sec = "/" + u.strip("/").split("/")[0] + "/"
+            for k, v in sorted(GALLERY.items()):
+                if k != u and k.startswith(sec):
+                    own += [r for r in v if r[2] not in used and r not in own]
+        own = own[:12]
+        used |= {r[2] for r in own}
+        GAL_ASSIGNED[u] = own
+
 def gallery_for(url, hero_src):
     global GALLERY
     if GALLERY is None:
@@ -204,16 +225,10 @@ def gallery_for(url, hero_src):
             for l in open(p, encoding="utf-8").read().splitlines()[1:]:
                 r = l.split("\t")
                 if len(r) >= 7 and r[5]: GALLERY.setdefault(r[0], []).append(r)
-    items = [r for r in GALLERY.get(url, []) if r[2] != hero_src]
-    if len(items) < 10:
-        # 一覧ページなどは、配下のページの写真も合わせて10枚以上にする
-        sec = "/" + url.strip("/").split("/")[0] + "/" if url != "/" else "/"
-        seen = {r[2] for r in items} | {hero_src}
-        for k, v in sorted(GALLERY.items()):
-            if k != url and (k.startswith(url) or k.startswith(sec)):
-                for r in v[:4]:
-                    if r[2] not in seen: items.append(r); seen.add(r[2])
-            if len(items) >= 12: break
+    if hero_src is None and url == "": return ""
+    if GAL_ASSIGNED is None:
+        photo_for("/"); assign_galleries()
+    items = GAL_ASSIGNED.get(url, [])
     if len(items) < 2: return ""
     figs = "".join(
         f'<figure><a href="{esc(r[3])}" target="_blank" rel="noopener"><img src="{esc(r[2])}" alt="{esc((r[1] + "見た" if r[1] else "") + "艦の写真")}" loading="lazy" decoding="async"></a>'

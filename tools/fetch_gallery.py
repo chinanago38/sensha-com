@@ -51,7 +51,7 @@ def commons_category(ja_title):
 
 def files_in(cat, depth=1):
     out = []
-    d = api("commons.wikimedia.org", {"action": "query", "list": "categorymembers", "cmtitle": cat, "cmtype": "file|subcat", "cmlimit": 300})
+    d = api("commons.wikimedia.org", {"action": "query", "list": "categorymembers", "cmtitle": cat, "cmtype": "file|subcat", "cmlimit": 500})
     subs = []
     for m in d.get("query", {}).get("categorymembers", []):
         if m["ns"] == 6: out.append(m["title"])
@@ -87,7 +87,7 @@ def angle(text):
         if any(k in text for k in keys): return label
     return ""
 
-def pick(cands, n=14):
+def pick(cands, n=40):
     chosen, used = [], set()
     for label, _ in ANGLES:
         for c in cands:
@@ -126,7 +126,7 @@ def main():
         allf = files_in(cat) if cat else []
         if len(allf) < 3 and slug in SEARCH: allf += search_files(SEARCH[slug])
         files = [f for f in dict.fromkeys(allf) if re.search(r"\.(jpe?g|png)$", f, re.I) and not any(a in f.lower() for a in AVOID)]
-        got = pick([c for c in infos(files[:200]) if not any(a in c["text"] for a in AVOID)])
+        got = pick([c for c in infos(files[:300]) if not any(a in c["text"] for a in AVOID)])
         for label, c in got:
             out.append("\t".join([slug, label, c["thumb"], c["page"], c["author"], c["license"], c["license_url"]]))
         print(f"{slug} {cat} files={len(files)} picked={len(got)} angles={','.join(l for l, _ in got if l)}")
