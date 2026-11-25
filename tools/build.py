@@ -249,13 +249,35 @@ def next_events():
         f'<em>{esc(veh[:40]) if veh and veh != "記載なし" else "展示内容は公式発表を確認"}</em></a>'
         for d, dt, n, pref, unit, veh, u in evs)
     js = ("<script>(function(){var t=new Date();t.setHours(0,0,0,0);var c=document.querySelectorAll('.ev-card'),n=0;"
-          "c.forEach(function(e){var d=new Date(e.dataset.date+'T00:00:00');if(d<t||n>=6){e.style.display='none'}else{n++}});"
+          "c.forEach(function(e){var d=new Date(e.dataset.date+'T00:00:00');if(d<t||n>=7){e.style.display='none'}else{if(!n){e.classList.add('featured');e.insertAdjacentHTML('afterbegin','<span class=ev-next>次の駐屯地祭</span>')}n++}});"
           "if(!n){document.getElementById('ev-none').style.display='block';var a=[].slice.call(c).slice(-3);a.forEach(function(e){e.style.display='';e.classList.add('past')})}})();</script>")
     return (f'<section class="block next-events"><h2>次の駐屯地祭（陸上自衛隊の記念行事）</h2>'
             f'<p class="lead">これから開かれる駐屯地・基地の記念行事です。日付は陸上自衛隊の公式ページで確認したものだけを載せています。'
             f'お出かけの前に、必ず公式ページで最新の情報を確かめてください。</p>'
             f'<p id="ev-none" class="note" style="display:none">いま発表されている今後の行事はありません。新しい年の日程は、各駐屯地が発表しだい追加します。下は最近開かれた行事です。</p>'
             f'<div class="ev-grid">{cards}</div><p class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダーをすべて見る</a></p>{js}</section>\n')
+
+def archive_rows(body):
+    def tag(t):
+        hd = re.search(r"<th>(開催日[^<]*)</th>", t)
+        if not hd: return t
+        yr = re.search(r"(20\d\d)", hd.group(1)); yr = int(yr.group(1)) if yr else 2026
+        def tr(m):
+            d = re.search(r"<td>(?:(20\d\d)年)?(\d{1,2})月(\d{1,2})日", m.group(0))
+            if not d: return m.group(0)
+            return f'<tr data-date="{int(d.group(1) or yr):04d}-{int(d.group(2)):02d}-{int(d.group(3)):02d}">' + m.group(0)[4:]
+        return re.sub(r"<tr><td>.*?</tr>", tr, t, flags=re.S)
+    body = re.sub(r"<table.*?</table>", lambda m: tag(m.group(0)), body, flags=re.S)
+    js = ("<section class=\"block\" id=\"archive\" style=\"display:none\"><h2>アーカイブ（終了した記念行事）</h2>"
+          "<p>開催日が過ぎた行事は、ここにまとめて残しています。来年の日程の目安にしてください（毎年同じ日とは限りません）。</p>"
+          "<div class=\"table-wrap\"><table><thead><tr><th>開催日</th><th>駐屯地</th><th>都道府県</th><th>主な部隊</th><th>戦車・装甲車両</th><th>公式ページ</th></tr></thead><tbody id=\"archive-body\"></tbody></table></div></section>"
+          "<script>(function(){var t=new Date();t.setHours(0,0,0,0);var rows=[].slice.call(document.querySelectorAll('tr[data-date]')),b=document.getElementById('archive-body'),n=0;"
+          "rows.sort(function(a,c){return a.dataset.date<c.dataset.date?1:-1});"
+          "rows.forEach(function(r){if(new Date(r.dataset.date+'T00:00:00')<t){r.cells[0].innerHTML+=' <span class=ended>終了</span>';b.appendChild(r);n++}});"
+          "if(n)document.getElementById('archive').style.display='';"
+          "document.querySelectorAll('main table').forEach(function(tb){if(tb.querySelector('th')&&/開催日/.test(tb.querySelector('th').textContent)&&tb.id!=='x'&&!tb.querySelector('tbody#archive-body')&&!tb.querySelector('tr[data-date]')&&tb.rows.length<=1){var s=tb.closest('section');if(s)s.style.display='none'}})})();</script>")
+    k = body.find('<section class="sources">')
+    return body[:k] + js + body[k:] if k >= 0 else body + js
 
 def ul_to_cards(main):
     def rep(m):
@@ -302,6 +324,8 @@ def render(url, title, desc, body):
     crumb = " › ".join(f'<a href="{u}">{esc(t)}</a>' if u else esc(t) for t, u in crumbs)
     if url == "/":
         hero = top_hero(body) + next_events()
+    if url == "/miru/kinengyoji/":
+        body = archive_rows(body)
     body = ul_to_cards(body)
     main = (f'  <div class="crumb">{crumb}</div>\n' if url != "/" else "") + hero + insert_after_first_section(blockify(wrap_tables(body)), figure_for(url))
     if gal:

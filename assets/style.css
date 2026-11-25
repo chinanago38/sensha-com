@@ -206,3 +206,7 @@ section.block h2{font-size:1.35rem}
 .ev-card small{opacity:.8}
 .ev-card em{font-style:normal;font-size:.82rem;opacity:.9}
 .ev-card.past{opacity:.6}
+.ev-card.featured{grid-column:1/-1;background:linear-gradient(135deg,var(--deep),var(--water));padding:22px 24px}
+.ev-card.featured strong{font-size:1.6rem}
+.ev-card .ev-next{align-self:flex-start;font-size:.8rem;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+.ended{display:inline-block;background:#888;color:#fff;border-radius:4px;padding:0 6px;font-size:.75rem;margin-left:4px}
