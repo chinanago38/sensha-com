@@ -6,6 +6,9 @@
 - 毎日0:07(JST)に Daily rebuild（トップの「次の駐屯地祭」が自動で繰り上がる）
 
 ## 作成中：駐屯地ガイド（/chutonchi/<slug>/）29か所
+- 05:50時点で17か所の下書きが完成（tools/drafts/ に退避済み・未公開）：higashichitose iwamizawa bibai makomanai takikawa shimamatsu okadama jinmachi fukushima kasuminome kengun zentsuji toyokawa moriyama kanazawa hisai sabae
+- 見送り12か所（公式資料不足）：kitaeniwa minamieniwa abira kutchan shizunai horobetsu shiraoi naebo hakodate toyama fukuoka himeji（倶知安は公式ページが読めなかっただけなので再挑戦の価値あり）
+- カレンダー要修正：島松は6/6一般公開・6/7招待者のみ／東千歳は10式・90式と約300両の観閲行進（さきがけ395）
 - 書き手が tools/content/chutonchi__<slug>.html を作成中（作業環境のローカル。未pushの可能性あり）
 - slug 一覧は tools/build.py の GARRISON。カレンダーの駐屯地名は、ページが完成すると自動でリンクされる
 - 残り作業：
