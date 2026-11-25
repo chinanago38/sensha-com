@@ -211,7 +211,7 @@ def gallery_for(url, hero_src):
         seen = {r[2] for r in items} | {hero_src}
         for k, v in sorted(GALLERY.items()):
             if k != url and (k.startswith(url) or k.startswith(sec)):
-                for r in v[:3]:
+                for r in v[:4]:
                     if r[2] not in seen: items.append(r); seen.add(r[2])
             if len(items) >= 12: break
     if len(items) < 2: return ""

@@ -100,11 +100,11 @@ def pick(cands, n=14):
     return chosen
 
 # Wikidata が艦級のカテゴリを返す・カテゴリがない艦は、艦ごとのカテゴリを指定する（存在しなければ写真なし）
-OVERRIDE = {"/kan/asahi/": "Category:JS Asahi (DD-119)",
+OVERRIDE = {"/miru/kinengyoji/": "", "/kan/asahi/": "Category:JS Asahi (DD-119)",
             }
 
 # カテゴリがない艦は、ファイル名検索で補う
-SEARCH = {"/rikuji/type90/": 'intitle:"Type 90" tank', "/kyugun/type89/": 'intitle:"Type 89" "I-Go"', "/kyugun/type95/": 'intitle:"Type 95" "Ha-Go"', "/kyugun/type97/": 'intitle:"Type 97" "Chi-Ha"'}
+SEARCH = {"/miru/kinengyoji/": 'intitle:"駐屯地" 記念行事', "/miru/rikkunland/": 'intitle:"Rikkun Land" OR intitle:"りっくんランド"', "/rikuji/type90/": 'intitle:"Type 90" tank', "/kyugun/type89/": 'intitle:"Type 89" "I-Go"', "/kyugun/type95/": 'intitle:"Type 95" "Ha-Go"', "/kyugun/type97/": 'intitle:"Type 97" "Chi-Ha"'}
 
 def search_files(q):
     d = api("commons.wikimedia.org", {"action": "query", "list": "search", "srsearch": q, "srnamespace": 6, "srlimit": 50})
@@ -114,7 +114,7 @@ def main():
     rows = [l.split("\t") for l in open(os.path.join(ROOT, "tools/photos/targets.tsv"), encoding="utf-8").read().splitlines()[1:] if l.strip()]
     out = ["slug\tangle\tthumb_url\tfile_page_url\tauthor\tlicense\tlicense_url"]
     for slug, ja in rows:
-        if not re.match(r"^/(rikuji|kyugun|sekai)/[a-z0-9]+/$", slug): continue
+        if not re.match(r"^/(rikuji|kyugun|sekai|miru|senshasen)/[a-z0-9]+/$", slug): continue
         cat = OVERRIDE.get(slug) or commons_category(ja)
         if not cat and slug in SEARCH: cat = ""
         if cat and slug not in OVERRIDE and " class" in cat.lower():
