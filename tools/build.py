@@ -59,9 +59,31 @@ def load_photos():
 PHOTOS = None
 # 自分の写真がないページは、関係の深いページの写真を「参考」と明記して使う
 FALLBACK = {}
+def dedupe_photos():
+    # 同じ写真が複数のページで使われないように、重なったページにはギャラリーの別の写真を割り当てる
+    global PHOTOS
+    gal = {}
+    gp = os.path.join(ROOT, "tools", "photos", "gallery.tsv")
+    if os.path.exists(gp):
+        for l in open(gp, encoding="utf-8").read().splitlines()[1:]:
+            r = l.split("\t")
+            if len(r) >= 7 and r[5]: gal.setdefault(r[0], []).append(r)
+    used = set()
+    order = sorted(PHOTOS, key=lambda u: (u.count("/") < 3, u))  # 個別ページを先に
+    for u in order:
+        r = list(PHOTOS[u])
+        if r[1] in used:
+            sec = "/" + u.strip("/").split("/")[0] + "/"
+            pool = gal.get(u, []) + [g for k, v in sorted(gal.items()) if k.startswith(sec) and k != u for g in v] + [g for v in gal.values() for g in v]
+            alt = next((g for g in pool if g[2] not in used), None)
+            if alt:
+                r = [u, alt[2], alt[3], alt[4], alt[5], alt[6], r[6]]
+        used.add(r[1])
+        PHOTOS[u] = r
+
 def photo_for(url):
     global PHOTOS
-    if PHOTOS is None: PHOTOS = load_photos()
+    if PHOTOS is None: PHOTOS = load_photos(); dedupe_photos()
     if url in PHOTOS: return PHOTOS[url]
     if url in FALLBACK and FALLBACK[url][0] in PHOTOS:
         r = list(PHOTOS[FALLBACK[url][0]])
@@ -71,7 +93,7 @@ def photo_for(url):
 
 def photo_html(url):
     global PHOTOS
-    if PHOTOS is None: PHOTOS = load_photos()
+    if PHOTOS is None: PHOTOS = load_photos(); dedupe_photos()
     if url not in PHOTOS: return ""
     _, src, page, author, lic, lic_url, alt = PHOTOS[url][:7]
     lic_html = f'<a href="{esc(lic_url)}" rel="noopener license" target="_blank">{esc(lic)}</a>' if lic_url.startswith("http") else esc(lic)
@@ -212,10 +234,10 @@ def link_ships(url, body):
 
 def top_hero(body):
     global PHOTOS
-    if PHOTOS is None: PHOTOS = load_photos()
-    ph = PHOTOS.get("/rikuji/type10/")
+    if PHOTOS is None: PHOTOS = load_photos(); dedupe_photos()
+    ph = PHOTOS.get("/miru/sokaen/") or PHOTOS.get("/rikuji/type10/")
     bg = f' style="background-image:linear-gradient(180deg,rgba(6,22,44,.55),rgba(6,22,44,.85)),url({esc(ph[1])})"' if ph else ""
-    credit = (f'<p class="credit">写真：10式戦車 {esc(ph[3])} / <a href="{esc(ph[5])}" rel="noopener license" target="_blank">{esc(ph[4])}</a>'
+    credit = (f'<p class="credit">写真：富士総合火力演習 {esc(ph[3])} / <a href="{esc(ph[5])}" rel="noopener license" target="_blank">{esc(ph[4])}</a>'
               f'（<a href="{esc(ph[2])}" rel="noopener" target="_blank">Wikimedia Commons</a>）</p>') if ph else ""
     cnt = lambda d: max(0, len(glob.glob(os.path.join(ROOT, "tools", "content", d + "__*.html"))) - 1)
     stats = [(str(cnt("rikuji")), "陸自の戦車", "/rikuji/"), (str(cnt("kyugun")), "旧日本軍の戦車", "/kyugun/"), (str(cnt("sekai")), "世界の戦車", "/sekai/"), (str(cnt("miru")), "見られる場所", "/miru/")]
@@ -269,7 +291,7 @@ def next_events():
 
 def photo_wall():
     global PHOTOS
-    if PHOTOS is None: PHOTOS = load_photos()
+    if PHOTOS is None: PHOTOS = load_photos(); dedupe_photos()
     items = []
     for u in sorted(PHOTOS):
         if re.match(r"^/(rikuji|kyugun|sekai)/[a-z0-9]+/$", u) and os.path.exists(os.path.join(ROOT, u.strip("/"), "index.html")):
@@ -302,11 +324,15 @@ def archive_rows(body):
     k = body.find('<section class="sources">')
     return body[:k] + js + body[k:] if k >= 0 else body + js
 
+SEEN_THUMBS = set()
 def ul_to_cards(main):
+    SEEN_THUMBS.clear()
     def rep(m):
         items = re.findall(r'<li><a href="([^"]+)">(.*?)</a>(?:：|・)?(.*?)</li>', m.group(0), re.S)
         if not items or len(items) < 3: return m.group(0)
         def th(u):
+            if u in SEEN_THUMBS: return ""
+            SEEN_THUMBS.add(u)
             ph = photo_for(u) if u.startswith("/") else None
             return f'<img class="thumb" src="{esc(ph[1])}" alt="{esc(ph[6])}" loading="lazy">' if ph else ""
         return '<div class="cards">' + "".join(f'<a class="card{" has-thumb" if th(u) else ""}" href="{u}">{th(u)}<strong>{strip(t)}</strong><small>{strip(d)}</small></a>' for u, t, d in items) + "</div>"
@@ -329,7 +355,7 @@ def render(url, title, desc, body):
     if m:
         body = body[:m.start()] + body[m.end():]
         global PHOTOS
-        if PHOTOS is None: PHOTOS = load_photos()
+        if PHOTOS is None: PHOTOS = load_photos(); dedupe_photos()
         ph = photo_for(url)
         if ph:
             credit = (f'<p class="credit">写真：{esc(ph[6])} {esc(ph[3])} / <a href="{esc(ph[5])}" rel="noopener license" target="_blank">{esc(ph[4])}</a>'
