@@ -243,19 +243,29 @@ def next_events():
             evs.append((f"{y:04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}", strip(td[0]), strip(td[1]), strip(td[2]), strip(td[3]), strip(td[4]), link.group(1) if link else "/miru/kinengyoji/"))
     if not evs: return ""
     evs.sort()
-    cards = "".join(
-        f'<a class="ev-card" data-date="{d}" href="{esc(u)}" target="_blank" rel="noopener"><span class="ev-date">{esc(dt)}</span>'
-        f'<strong>{esc(n)}</strong><small>{esc(pref)}・{esc(unit[:30])}</small>'
-        f'<em>{esc(veh[:40]) if veh and veh != "記載なし" else "展示内容は公式発表を確認"}</em></a>'
-        for d, dt, n, pref, unit, veh, u in evs)
-    js = ("<script>(function(){var t=new Date();t.setHours(0,0,0,0);var c=document.querySelectorAll('.ev-card'),n=0;"
-          "c.forEach(function(e){var d=new Date(e.dataset.date+'T00:00:00');if(d<t||n>=7){e.style.display='none'}else{if(!n){e.classList.add('featured');e.insertAdjacentHTML('afterbegin','<span class=ev-next>次の駐屯地祭</span>')}n++}});"
-          "if(!n){document.getElementById('ev-none').style.display='block';var a=[].slice.call(c).slice(-3);a.forEach(function(e){e.style.display='';e.classList.add('past')})}})();</script>")
+    today = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)).strftime("%Y-%m-%d")
+    up = [e for e in evs if e[0] >= today]
+    show = up[:3] if up else evs[-3:]
+    def card(e, i):
+        d, dt, n, pref, unit, veh, u = e
+        lab = ["次の駐屯地祭", "その次", "その次の次"][i] if up else "最近の行事"
+        vv = veh if veh and veh != "記載なし" else "展示内容は公式発表を確認"
+        return (f'<a class="ev-card{" featured" if i == 0 and up else ""}" data-date="{d}" href="{esc(u)}" target="_blank" rel="noopener">'
+                f'<span class="ev-next">{lab}</span><span class="ev-date">{esc(d[:4])}年{esc(dt)}</span>'
+                f'<strong>{esc(n)}の記念行事</strong><small>{esc(pref)}・{esc(unit[:40])}</small><em>{esc(vv[:60])}</em></a>')
+    cards = "".join(card(e, i) for i, e in enumerate(show))
+    ld = [{"@context": "https://schema.org", "@type": "Event", "name": f"{n} 記念行事（駐屯地祭）", "startDate": d,
+           "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode", "eventStatus": "https://schema.org/EventScheduled",
+           "location": {"@type": "Place", "name": n, "address": {"@type": "PostalAddress", "addressRegion": pref, "addressCountry": "JP"}},
+           "organizer": {"@type": "Organization", "name": "陸上自衛隊", "url": "https://www.mod.go.jp/gsdf/"}, "url": u}
+          for d, dt, n, pref, unit, veh, u in (up[:3])]
+    import json
+    ldtag = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>' if ld else ""
+    none = "" if up else '<p class="note">いま発表されている今後の行事はありません。新しい年の日程は、各駐屯地が発表しだい追加します。下は最近開かれた行事です。</p>'
     return (f'<section class="block next-events"><h2>次の駐屯地祭（陸上自衛隊の記念行事）</h2>'
-            f'<p class="lead">これから開かれる駐屯地・基地の記念行事です。日付は陸上自衛隊の公式ページで確認したものだけを載せています。'
-            f'お出かけの前に、必ず公式ページで最新の情報を確かめてください。</p>'
-            f'<p id="ev-none" class="note" style="display:none">いま発表されている今後の行事はありません。新しい年の日程は、各駐屯地が発表しだい追加します。下は最近開かれた行事です。</p>'
-            f'<div class="ev-grid">{cards}</div><p class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダーをすべて見る</a></p>{js}</section>\n')
+            f'<p class="lead">これから開かれる駐屯地・基地の記念行事を、近い順に3つ紹介します。日付は陸上自衛隊の公式ページで確認したものだけです。'
+            f'お出かけの前に、必ず公式ページで最新の情報を確かめてください。</p>{none}'
+            f'<div class="ev-grid">{cards}</div><p class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダーをすべて見る</a></p>{ldtag}</section>\n')
 
 def archive_rows(body):
     def tag(t):
