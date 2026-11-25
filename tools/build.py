@@ -324,17 +324,29 @@ def archive_rows(body):
     k = body.find('<section class="sources">')
     return body[:k] + js + body[k:] if k >= 0 else body + js
 
-SEEN_THUMBS = set()
+SEEN_THUMBS = {}
+USED_SRC = set()
 def ul_to_cards(main):
-    SEEN_THUMBS.clear()
+    SEEN_THUMBS.clear(); USED_SRC.clear()
     def rep(m):
         items = re.findall(r'<li><a href="([^"]+)">(.*?)</a>(?:：|・)?(.*?)</li>', m.group(0), re.S)
         if not items or len(items) < 3: return m.group(0)
         def th(u):
-            if u in SEEN_THUMBS: return ""
-            SEEN_THUMBS.add(u)
-            ph = photo_for(u) if u.startswith("/") else None
-            return f'<img class="thumb" src="{esc(ph[1])}" alt="{esc(ph[6])}" loading="lazy">' if ph else ""
+            if not u.startswith("/"): return ""
+            ph = photo_for(u)
+            k = SEEN_THUMBS.get(u, 0); SEEN_THUMBS[u] = k + 1
+            src, alt = (ph[1], ph[6]) if ph else (None, "")
+            if k or not src:
+                gallery_for(u, None)
+                sec = "/" + u.strip("/").split("/")[0] + "/"
+                pool = [r for r in GALLERY.get(u, []) if not ph or r[2] != ph[1]]
+                pool += [r for kk, v in sorted(GALLERY.items()) if kk.startswith(u) and kk != u for r in v]
+                pool += [r for kk, v in sorted(GALLERY.items()) if kk.startswith(sec) and kk != u for r in v]
+                pool = [r for r in pool if r[2] not in USED_SRC]
+                if not pool: return ""
+                src = pool[0][2]
+            USED_SRC.add(src)
+            return f'<img class="thumb" src="{esc(src)}" alt="{esc(alt)}" loading="lazy">'
         return '<div class="cards">' + "".join(f'<a class="card{" has-thumb" if th(u) else ""}" href="{u}">{th(u)}<strong>{strip(t)}</strong><small>{strip(d)}</small></a>' for u, t, d in items) + "</div>"
     return re.sub(r"<ul>(?:\s*<li><a href=.*?</li>)+\s*</ul>", rep, main, flags=re.S)
 
