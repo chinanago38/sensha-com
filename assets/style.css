@@ -195,3 +195,14 @@ section.block h2{font-size:1.35rem}
 .fate a.ship{text-decoration:none;color:#fff;cursor:pointer;position:relative}
 .fate a.ship::after{content:"›";position:absolute;right:12px;opacity:.6}
 .fate a.ship:hover{filter:brightness(1.35)}
+
+/* next events on top */
+.next-events{border:3px solid var(--accent)}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:14px 0}
+.ev-card{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:var(--deep);color:#fff;text-decoration:none;box-shadow:var(--shadow);transition:transform .15s}
+.ev-card:hover{transform:translateY(-2px)}
+.ev-card .ev-date{display:inline-block;align-self:flex-start;background:var(--accent);color:#1b1b1b;font-weight:700;border-radius:6px;padding:2px 8px;font-size:.9rem}
+.ev-card strong{font-size:1.15rem}
+.ev-card small{opacity:.8}
+.ev-card em{font-style:normal;font-size:.82rem;opacity:.9}
+.ev-card.past{opacity:.6}

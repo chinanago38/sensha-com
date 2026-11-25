@@ -6,9 +6,9 @@ import glob, html, os, re, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOMAIN = "https://xn--iour70h.com"
-CSS_VER = "20261125e"
+CSS_VER = "20261125f"
 AD = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1061443138303693" crossorigin="anonymous"></script>'
-NAV = [("見られる場所", "/miru/"), ("陸自の戦車", "/rikuji/"), ("旧日本軍", "/kyugun/"), ("世界の戦車", "/sekai/"), ("戦車戦", "/senshasen/")]
+NAV = [("駐屯地祭", "/miru/kinengyoji/"), ("見られる場所", "/miru/"), ("陸自の戦車", "/rikuji/"), ("旧日本軍", "/kyugun/"), ("世界の戦車", "/sekai/"), ("戦車戦", "/senshasen/")]
 SECTION_NAME = {"miru": ("見られる場所", "/miru/"), "rikuji": ("陸自の戦車", "/rikuji/"), "kyugun": ("旧日本軍の戦車", "/kyugun/"), "sekai": ("世界の戦車", "/sekai/"), "senshasen": ("戦車戦", "/senshasen/")}
 
 def esc(s): return html.escape(s, quote=True)
@@ -220,9 +220,42 @@ def top_hero(body):
     cnt = lambda d: max(0, len(glob.glob(os.path.join(ROOT, "tools", "content", d + "__*.html"))) - 1)
     stats = [(str(cnt("rikuji")), "陸自の戦車", "/rikuji/"), (str(cnt("kyugun")), "旧日本軍の戦車", "/kyugun/"), (str(cnt("sekai")), "世界の戦車", "/sekai/"), (str(cnt("miru")), "見られる場所", "/miru/")]
     st = "".join(f'<a class="stat" href="{u}"><b>{v}</b><small>{t}</small></a>' for v, t, u in stats)
-    return (f'<section class="tophero"{bg}><div class="inner"><p class="kicker">陸上自衛隊の戦車と、戦車の歴史</p>'
-            f'<h1>戦車を見に行く・<br>知るためのガイド</h1><p class="lead">富士総合火力演習や駐屯地祭など戦車が見られる場所、陸上自衛隊の戦車、旧日本陸軍と世界の戦車の歴史。公的な資料だけで作る、個人運営のガイドです。</p>'
-            f'<div class="stats">{st}</div><div class="cta"><a class="btn" href="/miru/">戦車が見られる場所</a><a class="btn ghost" href="/rikuji/">陸自の戦車</a></div></div>{credit}</section>\n')
+    return (f'<section class="tophero"{bg}><div class="inner"><p class="kicker">陸上自衛隊の駐屯地祭・記念行事ガイド</p>'
+            f'<h1>次の駐屯地祭は<br>いつ・どこで？</h1><p class="lead">全国の駐屯地・基地の記念行事の日程を、陸上自衛隊の公式発表から集めています。戦車や車両の紹介は各ページで。個人運営の非公式ガイドです。</p>'
+            f'<div class="stats">{st}</div><div class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダー</a><a class="btn ghost" href="/rikuji/">陸自の戦車</a></div></div>{credit}</section>\n')
+
+def next_events():
+    f = os.path.join(ROOT, "tools", "content", "miru__kinengyoji.html")
+    if not os.path.exists(f): return ""
+    src = open(f, encoding="utf-8").read()
+    evs = []
+    for t in re.findall(r"<table.*?</table>", src, re.S):
+        hd = re.search(r"<th>(開催日[^<]*)</th>", t)
+        if not hd: continue
+        yr = re.search(r"(20\d\d)", hd.group(1)); yr = int(yr.group(1)) if yr else 2026
+        for tr in re.findall(r"<tr>(.*?)</tr>", t, re.S):
+            td = re.findall(r"<td>(.*?)</td>", tr, re.S)
+            if len(td) < 6: continue
+            m = re.search(r"(?:(20\d\d)年)?(\d{1,2})月(\d{1,2})日", strip(td[0]))
+            if not m: continue
+            y = int(m.group(1) or yr)
+            link = re.search(r'href="([^"]+)"', td[5])
+            evs.append((f"{y:04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}", strip(td[0]), strip(td[1]), strip(td[2]), strip(td[3]), strip(td[4]), link.group(1) if link else "/miru/kinengyoji/"))
+    if not evs: return ""
+    evs.sort()
+    cards = "".join(
+        f'<a class="ev-card" data-date="{d}" href="{esc(u)}" target="_blank" rel="noopener"><span class="ev-date">{esc(dt)}</span>'
+        f'<strong>{esc(n)}</strong><small>{esc(pref)}・{esc(unit[:30])}</small>'
+        f'<em>{esc(veh[:40]) if veh and veh != "記載なし" else "展示内容は公式発表を確認"}</em></a>'
+        for d, dt, n, pref, unit, veh, u in evs)
+    js = ("<script>(function(){var t=new Date();t.setHours(0,0,0,0);var c=document.querySelectorAll('.ev-card'),n=0;"
+          "c.forEach(function(e){var d=new Date(e.dataset.date+'T00:00:00');if(d<t||n>=6){e.style.display='none'}else{n++}});"
+          "if(!n){document.getElementById('ev-none').style.display='block';var a=[].slice.call(c).slice(-3);a.forEach(function(e){e.style.display='';e.classList.add('past')})}})();</script>")
+    return (f'<section class="block next-events"><h2>次の駐屯地祭（陸上自衛隊の記念行事）</h2>'
+            f'<p class="lead">これから開かれる駐屯地・基地の記念行事です。日付は陸上自衛隊の公式ページで確認したものだけを載せています。'
+            f'お出かけの前に、必ず公式ページで最新の情報を確かめてください。</p>'
+            f'<p id="ev-none" class="note" style="display:none">いま発表されている今後の行事はありません。新しい年の日程は、各駐屯地が発表しだい追加します。下は最近開かれた行事です。</p>'
+            f'<div class="ev-grid">{cards}</div><p class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダーをすべて見る</a></p>{js}</section>\n')
 
 def ul_to_cards(main):
     def rep(m):
@@ -268,7 +301,7 @@ def render(url, title, desc, body):
         crumbs.append((strip(m.group(1)) if m else title, None))
     crumb = " › ".join(f'<a href="{u}">{esc(t)}</a>' if u else esc(t) for t, u in crumbs)
     if url == "/":
-        hero = top_hero(body)
+        hero = top_hero(body) + next_events()
     body = ul_to_cards(body)
     main = (f'  <div class="crumb">{crumb}</div>\n' if url != "/" else "") + hero + insert_after_first_section(blockify(wrap_tables(body)), figure_for(url))
     if gal:
