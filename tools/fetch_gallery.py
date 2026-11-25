@@ -104,9 +104,7 @@ OVERRIDE = {"/kan/asahi/": "Category:JS Asahi (DD-119)",
             }
 
 # カテゴリがない艦は、ファイル名検索で補う
-SEARCH = {"/sensuikan/i400/": 'intitle:"I-400"', "/sensuikan/i58/": 'intitle:"I-58"', "/sensuikan/i19/": 'intitle:"I-19"',
-          "/sensuikan/i168/": 'intitle:"I-168"', "/kan/takanami/": 'intitle:"DD-110"', "/kan/niyodo/": 'intitle:"Niyodo"',
-          "/kan/natori/": 'intitle:"Natori" FFM'}
+SEARCH = {"/rikuji/type90/": 'intitle:"Type 90" tank', "/kyugun/type89/": 'intitle:"Type 89" "I-Go"', "/kyugun/type95/": 'intitle:"Type 95" "Ha-Go"', "/kyugun/type97/": 'intitle:"Type 97" "Chi-Ha"'}
 
 def search_files(q):
     d = api("commons.wikimedia.org", {"action": "query", "list": "search", "srsearch": q, "srnamespace": 6, "srlimit": 50})

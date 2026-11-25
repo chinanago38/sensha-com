@@ -210,3 +210,9 @@ section.block h2{font-size:1.35rem}
 .ev-card.featured strong{font-size:1.6rem}
 .ev-card .ev-next{align-self:flex-start;font-size:.8rem;font-weight:700;letter-spacing:.08em;color:var(--accent)}
 .ended{display:inline-block;background:#888;color:#fff;border-radius:4px;padding:0 6px;font-size:.75rem;margin-left:4px}
+
+/* card thumbnails & photo wall */
+.card.has-thumb{padding-top:0;overflow:hidden}
+.card .thumb{display:block;width:calc(100% + 36px);margin:0 -18px 12px;aspect-ratio:16/9;object-fit:cover}
+.gallery.wall figure a{position:relative;display:block;color:#fff;text-decoration:none}
+.gallery.wall .cap{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-weight:700}

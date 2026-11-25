@@ -6,7 +6,7 @@ import glob, html, os, re, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOMAIN = "https://xn--iour70h.com"
-CSS_VER = "20261125f"
+CSS_VER = "20261126a"
 AD = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1061443138303693" crossorigin="anonymous"></script>'
 NAV = [("駐屯地祭", "/miru/kinengyoji/"), ("見られる場所", "/miru/"), ("陸自の戦車", "/rikuji/"), ("旧日本軍", "/kyugun/"), ("世界の戦車", "/sekai/"), ("戦車戦", "/senshasen/")]
 SECTION_NAME = {"miru": ("見られる場所", "/miru/"), "rikuji": ("陸自の戦車", "/rikuji/"), "kyugun": ("旧日本軍の戦車", "/kyugun/"), "sekai": ("世界の戦車", "/sekai/"), "senshasen": ("戦車戦", "/senshasen/")}
@@ -267,6 +267,19 @@ def next_events():
             f'お出かけの前に、必ず公式ページで最新の情報を確かめてください。</p>{none}'
             f'<div class="ev-grid">{cards}</div><p class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダーをすべて見る</a></p>{ldtag}</section>\n')
 
+def photo_wall():
+    global PHOTOS
+    if PHOTOS is None: PHOTOS = load_photos()
+    items = []
+    for u in sorted(PHOTOS):
+        if re.match(r"^/(rikuji|kyugun|sekai)/[a-z0-9]+/$", u) and os.path.exists(os.path.join(ROOT, u.strip("/"), "index.html")):
+            ph = PHOTOS[u]
+            items.append(f'<figure><a href="{u}"><img src="{esc(ph[1])}" alt="{esc(ph[6])}" loading="lazy"><span class="cap">{esc(ph[6])}</span></a>'
+                         f'<figcaption>{esc(ph[3][:40])} / <a href="{esc(ph[2])}" target="_blank" rel="noopener">{esc(ph[4])}</a></figcaption></figure>')
+    if not items: return ""
+    return (f'<section class="block"><h2>写真で見る戦車</h2><div class="gallery wall">{"".join(items)}</div>'
+            f'<p class="note">写真はWikimedia Commonsの自由ライセンス画像です。写真を押すとその戦車のページへ、ライセンス表記を押すと元の写真のページへ移動します。</p></section>\n')
+
 def archive_rows(body):
     def tag(t):
         hd = re.search(r"<th>(開催日[^<]*)</th>", t)
@@ -293,7 +306,10 @@ def ul_to_cards(main):
     def rep(m):
         items = re.findall(r'<li><a href="([^"]+)">(.*?)</a>(?:：|・)?(.*?)</li>', m.group(0), re.S)
         if not items or len(items) < 3: return m.group(0)
-        return '<div class="cards">' + "".join(f'<a class="card" href="{u}"><strong>{strip(t)}</strong><small>{strip(d)}</small></a>' for u, t, d in items) + "</div>"
+        def th(u):
+            ph = photo_for(u) if u.startswith("/") else None
+            return f'<img class="thumb" src="{esc(ph[1])}" alt="{esc(ph[6])}" loading="lazy">' if ph else ""
+        return '<div class="cards">' + "".join(f'<a class="card{" has-thumb" if th(u) else ""}" href="{u}">{th(u)}<strong>{strip(t)}</strong><small>{strip(d)}</small></a>' for u, t, d in items) + "</div>"
     return re.sub(r"<ul>(?:\s*<li><a href=.*?</li>)+\s*</ul>", rep, main, flags=re.S)
 
 def complete(name):
@@ -333,7 +349,7 @@ def render(url, title, desc, body):
         crumbs.append((strip(m.group(1)) if m else title, None))
     crumb = " › ".join(f'<a href="{u}">{esc(t)}</a>' if u else esc(t) for t, u in crumbs)
     if url == "/":
-        hero = top_hero(body) + next_events()
+        hero = top_hero(body) + next_events() + photo_wall()
     if url == "/miru/kinengyoji/":
         body = archive_rows(body)
     body = ul_to_cards(body)
