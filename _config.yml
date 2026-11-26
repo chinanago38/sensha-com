@@ -1,3 +1,4 @@
 exclude:
+  - HANDOFF.md
   - AGENTS.md
   - tools
