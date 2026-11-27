@@ -267,7 +267,7 @@ def top_hero(body):
     stats = [(str(cnt("rikuji")), "陸自の戦車", "/rikuji/"), (str(cnt("kyugun")), "旧日本軍の戦車", "/kyugun/"), (str(cnt("sekai")), "世界の戦車", "/sekai/"), (str(cnt("miru")), "見られる場所", "/miru/")]
     st = "".join(f'<a class="stat" href="{u}"><b>{v}</b><small>{t}</small></a>' for v, t, u in stats)
     return (f'<section class="tophero"{bg}><div class="inner"><p class="kicker">陸上自衛隊の駐屯地祭・記念行事ガイド</p>'
-            f'<h1>次の駐屯地祭は<br>いつ・どこで？</h1><p class="lead">全国の駐屯地・基地の記念行事の日程を、陸上自衛隊の公式発表から集めています。戦車や車両の紹介は各ページで。個人運営の非公式ガイドです。</p>'
+            f'<h1>次の駐屯地祭は<br>いつ・どこで？</h1><p class="lead">全国の駐屯地・基地の記念行事の日程を、陸上自衛隊の公式発表から集めています。戦車や車両の紹介は各ページで。</p>'
             f'<div class="stats">{st}</div><div class="cta"><a class="btn" href="/miru/kinengyoji/">駐屯地祭カレンダー</a><a class="btn ghost" href="/rikuji/">陸自の戦車</a></div></div>{credit}</section>\n')
 
 def next_events():
@@ -456,7 +456,7 @@ def render(url, title, desc, body):
 {main}</div></main>
 
 <footer class="site"><div class="wrap">
-  <p>戦車.com は、戦車が見られる場所や戦車の歴史をまとめた個人運営の情報サイトです。防衛省・陸上自衛隊の公式サイトではありません。</p>
+  <p>戦車.com は、戦車が見られる場所や戦車の歴史をまとめた情報サイトです。防衛省・陸上自衛隊とは関係のない、ちんあなご編集部のサイトです。</p>
   <p>{" ・ ".join(f'<a href="{u}">{t}</a>' for t, u in [("トップ", "/")] + NAV)}</p>
   <p><a href="/operator/">運営者情報</a> ・ <a href="/editorial-policy/">編集方針</a> ・ <a href="/contact/">お問い合わせ</a> ・ <a href="/privacy/">プライバシーポリシー</a> ・ <a href="/disclaimer/">免責事項</a></p>
   <p>© 2026 戦車.com</p>
