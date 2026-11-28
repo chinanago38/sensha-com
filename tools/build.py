@@ -6,7 +6,7 @@ import glob, html, os, re, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOMAIN = "https://xn--iour70h.com"
-CSS_VER = "20261126a"
+CSS_VER = "20261129a"
 AD = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1061443138303693" crossorigin="anonymous"></script>'
 NAV = [("駐屯地祭", "/miru/kinengyoji/"), ("見られる場所", "/miru/"), ("陸自の戦車", "/rikuji/"), ("旧日本軍", "/kyugun/"), ("世界の戦車", "/sekai/"), ("戦車戦", "/senshasen/")]
 SECTION_NAME = {"miru": ("見られる場所", "/miru/"), "rikuji": ("陸自の戦車", "/rikuji/"), "kyugun": ("旧日本軍の戦車", "/kyugun/"), "sekai": ("世界の戦車", "/sekai/"), "senshasen": ("戦車戦", "/senshasen/"), "chutonchi": ("駐屯地ガイド", "/chutonchi/")}
@@ -455,12 +455,12 @@ def render(url, title, desc, body):
 <main><div class="wrap">
 {main}</div></main>
 
-<footer class="site"><div class="wrap">
+<footer class="site"><div class="wrap foot"><div class="ft">
   <p>戦車.com は、戦車が見られる場所や戦車の歴史をまとめた情報サイトです。防衛省・陸上自衛隊とは関係のない、ちんあなご編集部のサイトです。</p>
   <p>{" ・ ".join(f'<a href="{u}">{t}</a>' for t, u in [("トップ", "/")] + NAV)}</p>
   <p><a href="/operator/">運営者情報</a> ・ <a href="/editorial-policy/">編集方針</a> ・ <a href="/contact/">お問い合わせ</a> ・ <a href="/privacy/">プライバシーポリシー</a> ・ <a href="/disclaimer/">免責事項</a></p>
   <p>© 2026 戦車.com</p>
-</div></footer>
+</div><img class="mark" src="/assets/chinanago-mark.webp" width="80" height="80" alt="ちんあなご編集部のマーク" loading="lazy" decoding="async"></div></footer>
 </body>
 </html>
 """

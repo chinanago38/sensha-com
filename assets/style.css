@@ -216,3 +216,8 @@ section.block h2{font-size:1.35rem}
 .card .thumb{display:block;width:calc(100% + 36px);margin:0 -18px 12px;aspect-ratio:16/9;object-fit:cover}
 .gallery.wall figure a{position:relative;display:block;color:#fff;text-decoration:none}
 .gallery.wall .cap{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-weight:700}
+/* フッターの右端のちんあなごマーク（2026-11-29） */
+footer.site .foot{display:flex;align-items:flex-end;gap:16px}
+footer.site .ft{flex:1;min-width:0}
+footer.site .mark{flex:none;width:80px;height:80px;display:block;filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff)}
+@media(max-width:640px){footer.site .mark{width:64px;height:64px}}
